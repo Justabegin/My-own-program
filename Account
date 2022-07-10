@@ -1,0 +1,89 @@
+from re import A
+from openpyxl import load_workbook
+import pandas as pd
+import os 
+from openpyxl import Workbook #reading/loading workbooks
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows #appending dataframes to rows
+acc=input('請輸入你要使用的Account : ')
+da = input("請輸入日期 : ")
+de = input("請輸入Description : ")
+j = input("請輸入是debit 還是 credit : ")
+a = int(input("請問是多少錢 : "))
+s = input("請輸入是哪個sheet : ")
+x='.xlsx'
+Fn1=acc + x
+reader = pd.read_excel(Fn1)
+lenth=(len(reader))-1 
+if j == "debit" :
+    b=int(reader.iloc[lenth,4])+a
+    new_row = ({'Date':[da],'Description':[de],'debit':[a],'credit':[0],
+                   'balace':[b]})
+    new_row=pd.DataFrame(new_row)                  
+elif j=="credit":
+    b=int(reader.iloc[lenth,4])-a
+    new_row = ({'Date':[da],'Description':[de],'debit':[0],'credit':[a],
+                   'balace':[b]})
+    new_row=pd.DataFrame(new_row)      
+reader = pd.concat([new_row])
+print(reader)
+# append new row
+wb=load_workbook(Fn1, read_only=False)
+ws_mysheet1 = wb["sheet 1"]
+for r in dataframe_to_rows(reader, index=False, header=False):
+       ws_mysheet1.append(r)
+wb.save(Fn1)       
+wb.close()
+m=input("請輸入Debtor/Creditor的名字 : ")
+dc=m+x
+if os.path.isfile(dc) == True:
+    rd=pd.read_excel(dc)
+    lan=len(rd) - 1
+    if j=='debit':
+        c=int(rd.iloc[lan,4])
+        b=c-a
+        row =  ({'Date':[da],'Description':[de],'debit':[0],'credit':[a],
+                   'balace':[b]})     
+        rd =pd.DataFrame(row)
+        # append new row
+        wb=load_workbook(dc, read_only=False)
+        ws_mysheet1 = wb[s]
+        for r in dataframe_to_rows(rd, index=False, header=False):
+            ws_mysheet1.append(r)
+        wb.save(dc)       
+        wb.close()
+    else:
+        b=int(rd.iloc[lan,4])+a
+        row =  ({'Date':[da],'Description':[de],'debit':[a],'credit':[0],
+                   'balace':[b]})     
+        rd =pd.DataFrame(row)
+        # append new row
+        wb=load_workbook(dc, read_only=False)
+        ws_mysheet1 = wb[s]
+        for r in dataframe_to_rows(rd, index=False, header=False):
+            ws_mysheet1.append(r)
+        wb.save(dc)       
+        wb.close()
+else:
+    if j=="debit":
+        ## dataframe Date,Describe,debit,credit,balace column
+        b=0-int(a)
+        df = pd.DataFrame({'Date':[da],'Description':[de],'debit':[0],'credit':[a],
+                   'balace':[b]
+                   })
+        ## Create a panda excel writer using xlsxwriter Excel object.
+        writer = pd.ExcelWriter(dc,engine = 'xlsxwriter')
+        df.to_excel(writer,sheet_name='sheet 1',index=False)
+        writer.save()
+    else:
+         b=0+int(a)
+         df = pd.DataFrame({'Date':[da],'Description':[de],'debit':[a],'credit':[0],
+                   'balace':[b]
+                   })
+         ## Create a panda excel writer using xlsxwriter Excel object.
+         writer = pd.ExcelWriter(dc,engine = 'xlsxwriter')
+         df.to_excel(writer,sheet_name='sheet 1',index=False)
+         writer.save()
+
+
+
